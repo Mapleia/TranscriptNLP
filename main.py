@@ -21,6 +21,7 @@ def sentence_ize():
             file_docs = file_docs.append({'name': filename, 'tokens': tokens})
 
     # train the model with new words.
+    # taken from https://stackoverflow.com/questions/22121028/update-gensim-word2vec-model
     word_vectors.build_vocab(sentences, update=True)
     word_vectors.train(sentences)
 
@@ -29,6 +30,7 @@ def sentence_ize():
 
     print('Commencing loop for similarity test.')
     # for every combination in the list, compare to get the wmd.
+    # taken from https://tedboy.github.io/nlps/generated/generated/gensim.models.Word2Vec.wmdistance.html
     for a, b in itertools.combinations(file_docs, 2):
         sentence_a = a['tokens'].lower().split()
         sentence_b = b['tokens'].lower().split()
