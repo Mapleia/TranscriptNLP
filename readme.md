@@ -11,3 +11,4 @@ Scores for similarity.
 4. Profit!
 
 ## Need to get the captions?
+Try [this repo](https://github.com/Mapleia/TranscriptCollect) out!
