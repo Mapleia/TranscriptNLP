@@ -8,83 +8,59 @@ import matplotlib.pyplot as plt
 from os import listdir
 
 
+# similarity_score.json
 def main():
-    # with open('youtube_vids.json') as f:
-    # video_dict = json.loads(f.read())
-    # objects = {video['name']: video['id'] for video in video_dict}
     name_list = [f.removesuffix('.txt') for f in listdir('../TRANSCRIPTS/TEXT')]
-    # name_list, filtered_ratio = axis_name()
-    # name_row = ["names"] + filtered_ratio
-    name_row = ["names"] + name_list
-
+    # print(len(name_list))
     with open('../TRANSCRIPTS/similarity_score.json') as similarity_file:
-        sim_dict = json.loads(similarity_file.read())
-        # print(sim_dict)
+        sim_list = json.loads(similarity_file.read())
+        create_heatmap(sim_list, name_list)
 
-    csv_array = []
-    value_list = []
+    create_bar_graph()
+
+
+def create_heatmap(similarity_list, name_list):
+    all_list = []
     for name in name_list:
-        list_a = [x for x in sim_dict if x['a'].removesuffix('.txt') == name]
-        obj_a = {compare['b'].removesuffix('.txt'): compare['similarity'] for compare in list_a}
-        list_b = [x for x in sim_dict if x['b'].removesuffix('.txt') == name]
-        obj_b = {compare['a'].removesuffix('.txt'): compare['similarity'] for compare in list_b}
+        value_list = [{'name': x['b'].removesuffix('.txt'), 'similarity': round(x['similarity'], 3)}
+                      for x in similarity_list if x['a'].removesuffix('.txt') == name]
+        value_list += [{'name': x['a'].removesuffix('.txt'), 'similarity': round(x['similarity'], 3)}
+                       for x in similarity_list if x['b'].removesuffix('.txt') == name]
+        value_list.append({'name': name, 'similarity': 0.00})
 
-        obj_a.update(obj_b)
-        obj_a[name] = 0.000
+        value_list = list(sorted(value_list, key=lambda k: k['name']))
+        print(value_list)
+        value_list = [sim['similarity'] for sim in value_list]
+        if len(value_list) > 1:
+            all_list.append(value_list)
+        else:
+            print(name)
 
-        # print(obj_a)
-        # print(obj_b)
-        row = []
-        for name_col in name_list:
-            value = round(obj_a[name_col], 3)
-            row.append(value)
-        row_with_name = [name] + row
-        print(row_with_name)
-        csv_array.append(row_with_name)
-        value_list.append(row)
-
-    with open('../TRANSCRIPTS/heatmap_values.csv', 'w') as h_values:
-        write = csv.writer(h_values)
-        write.writerow(name_row)
-        write.writerows(csv_array)
-
+    print(all_list)
+    print(len(value_list))
     fig, ax = plt.subplots()
-    hm_values = np.array(value_list)
-    im, cbar = heatmap(hm_values, name_list, name_list, ax=ax,
-                       cmap="YlGn", cbarlabel="Similarity Score")
+    hm_values = np.array(all_list)
+    print(hm_values)
+    im, c_bar = heatmap(hm_values, name_list, name_list, ax=ax, cmap="YlGn", cbarlabel="Similarity Score")
     fig.tight_layout()
-    plt.savefig("../TRANSCRIPTS/similarity_score.png")
+    plt.savefig("../TRANSCRIPTS/GRAPHS/similarity_graph.png")
 
 
-def axis_name():
+# ratio_list.json
+def axis_name(available_names):
 
-    def if_tana(item):
-        if "Tana Mongeau" in item:
+    def if_name_available(item):
+        if item['name'] in available_names:
             return False
         else:
             return True
 
     with open('../TRANSCRIPTS/ratio_list.json') as ratio_file:
-        ratio_list = json.loads(ratio_file.read())
-        from_ratio = list(filter(if_tana, sorted([ratio['name'] for ratio in ratio_list])))
-        print(from_ratio)
-
-        with_ratio = []
-        for ratio in ratio_list:
-            if ratio['ratio'] is not None:
-                with_ratio.append('{name} ({ratio:.2f})'.format(name=ratio['name'],
-                                                                ratio=ratio['ratio']))
-            else:
-                with_ratio.append('{name} (None)'.format(name=ratio['name'], ratio=ratio['ratio']))
-
-        sorted_ratio = sorted(with_ratio)
-
-        filtered_ratio = list(filter(if_tana, sorted_ratio))
+        ratio_list = list(filter(if_name_available, json.loads(ratio_file.read())))
+        with_ratio = ['{name} ({ratio:.2f})'.format(name=ratio['name'], ratio=ratio['ratio']) for ratio in ratio_list]
 
         print(with_ratio)
-        print(sorted_ratio)
-        print(filtered_ratio)
-        return [from_ratio, filtered_ratio]
+        return with_ratio
 
 
 def heatmap(data, row_labels, col_labels, ax=None,
@@ -206,19 +182,7 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
     return texts
 
 
-def create_ratio_csv():
-    with open('../TRANSCRIPTS/ratio_list.json') as ratio_file:
-        ratio_list = json.loads(ratio_file.read())
-        ratio_list = sorted(ratio_list, key=lambda k: k['ratio'])
-        labels = ["names", "likes", "dislikes", "ratio"]
-        data = [[ratio['name'], ratio['like'], ratio['dislikes'], ratio['ratio']] for ratio in ratio_list]
-
-    with open('../TRANSCRIPTS/ratios.csv', 'w') as h_values:
-        write = csv.writer(h_values)
-        write.writerow(labels)
-        write.writerows(data)
-
-
+# ratios.csv
 def create_bar_graph():
     with open('../TRANSCRIPTS/ratios.csv') as ratio_file:
         df = pd.read_csv(ratio_file, index_col=0)
@@ -237,7 +201,7 @@ def create_bar_graph():
         ax.legend(loc=0)
         ax2.legend(loc=2)
         plt.tight_layout()
-        plt.savefig("../TRANSCRIPTS/ratio_graph.png")
+        plt.savefig("../TRANSCRIPTS/GRAPHS/ratio_graph.png")
 
 
 if __name__ == "__main__":  # run the script
