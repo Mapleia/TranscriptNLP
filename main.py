@@ -61,9 +61,9 @@ def sentence_ize():
 
 
 def create_ratio_csv(ratio_list):
-    ratio_list = sorted(ratio_list, key=lambda k: k['ratio'])
-    labels = ["names", "likes", "dislikes", "ratio"]
-    data = [[ratio['name'], ratio['like'], ratio['dislikes'], ratio['ratio']] for ratio in ratio_list]
+    ratio_list = sorted(ratio_list, key=lambda k: k['dateDiff'])
+    labels = ["names", "likes", "dislikes", "ratio", "date"]
+    data = [[ratio['name'], ratio['like'], ratio['dislikes'], ratio['ratio'], ratio['dateDiff']] for ratio in ratio_list]
 
     with open('../TRANSCRIPTS/ratios.csv', 'w') as h_values:
         write = csv.writer(h_values)
